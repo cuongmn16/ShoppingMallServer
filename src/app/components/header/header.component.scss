@@ -1,0 +1,21 @@
+
+
+.header{
+  height:120px;
+  background-image: linear-gradient(0, #fe6433, rgba(255, 83, 77, 0.93));
+}
+
+.header__navbar{
+  display: flex;
+  justify-content: space-between;
+}
+.header__navbar-list{
+  list-style: none;
+  padding-left: 0;
+}
+
+.header__navbar-item{
+  display : inline-block;
+}
+
+

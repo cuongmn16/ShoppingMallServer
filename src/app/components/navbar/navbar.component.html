@@ -1,0 +1,33 @@
+<!-- Thanh navbar bên trái -->
+<nav>
+  <div class="logo">Quản lý</div>
+  <ul>
+    <li><a href="#">Sản phẩm</a></li>
+    <li><a href="#">Danh mục</a></li>
+    <li><a [routerLink]="'/order'">Đơn hàng</a></li>
+    <li><a href="#">Khách hàng</a></li>
+    <li><a href="#">Cài đặt</a></li>
+  </ul>
+  <div class="logout">
+    <a (click)="openModal()">Đăng xuất</a>
+  </div>
+</nav>
+
+<!-- Modal xác nhận -->
+<div #logoutModal class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h4 class="modal-title">Xác nhận đăng xuất</h4>
+      <button type="button" class="close" (click)="declineLogout()" aria-label="Close">
+        <span aria-hidden="true">×</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      Bạn có chắc chắn muốn đăng xuất không?
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="declineLogout()">Hủy</button>
+      <button type="button" class="btn btn-danger" (click)="confirmLogout()">Đăng xuất</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,291 @@
+/* Khu vực chính (main content) */
+.main-content {
+  margin-left: 250px; /* Độ rộng của navbar */
+  padding: 20px;
+  min-height: 100vh;
+  background-color: #f3f4f6; /* Màu nền nhẹ nhàng */
+  transition: all 0.3s ease; /* Hiệu ứng mượt mà khi thay đổi kích thước */
+
+  @media (max-width: 768px) {
+    margin-left: 0;
+    padding: 10px;
+  }
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f2937;
+  text-align: center;
+  margin-bottom: 30px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Container form */
+.form-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 30px;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%); /* Gradient nền */
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e5e7eb;
+
+  @media (max-width: 600px) {
+    padding: 15px;
+  }
+}
+
+/* Các bước form */
+.form-step {
+  display: none;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+
+  &.active {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Định dạng chung cho form-group-select */
+.form-group-select {
+  width: 100%; /* Chiều rộng đầy đủ của container */
+  padding: 10px 12px; /* Padding để dễ nhìn hơn */
+  font-size: 16px; /* Kích thước chữ */
+  border: 1px solid #ccc; /* Viền mặc định */
+  border-radius: 4px; /* Bo góc */
+  background-color: #fff; /* Màu nền */
+  appearance: none; /* Xóa style mặc định của trình duyệt */
+  cursor: pointer; /* Con trỏ tay khi hover */
+  outline: none; /* Loại bỏ viền focus mặc định */
+  transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Hiệu ứng mượt mà */
+
+  /* Hiệu ứng khi focus */
+  &:focus {
+    border-color: #007bff; /* Màu viền khi focus */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Đổ bóng nhẹ */
+  }
+
+  /* Hiệu ứng khi hover */
+  &:hover {
+    border-color: #999; /* Màu viền khi hover */
+  }
+
+  /* Loại bỏ mũi tên mặc định của select (tùy trình duyệt) */
+  &::-ms-expand {
+    display: none; /* Ẩn ở IE */
+  }
+}
+
+/* Thêm icon mũi tên tùy chỉnh (sử dụng pseudo-element) */
+.form-group-select {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="%23333" viewBox="0 0 16 16"><path d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 10px center; /* Vị trí icon */
+  background-size: 12px; /* Kích thước icon */
+}
+
+/* Định dạng option */
+.category-item {
+  padding: 8px 12px; /* Padding cho mỗi option */
+  font-size: 16px; /* Kích thước chữ */
+  color: #333; /* Màu chữ */
+  background-color: #fff; /* Màu nền mặc định */
+
+  /* Hiệu ứng khi hover */
+  &:hover {
+    background-color: #f8f9fa; /* Màu nền khi hover */
+  }
+
+  /* Hiệu ứng khi được chọn */
+  &:checked,
+  &:active {
+    background-color: #007bff; /* Màu nền khi chọn */
+    color: #fff; /* Màu chữ khi chọn */
+  }
+}
+
+/* Định dạng khi select bị disabled */
+.form-group-select:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Hiển thị lỗi validation (nếu có) */
+.form-group-select.ng-invalid.ng-touched {
+  border-color: #dc3545; /* Màu viền đỏ khi lỗi */
+  background-color: #fff5f5; /* Màu nền nhạt khi lỗi */
+}
+
+/* Nhóm trường nhập liệu */
+.form-group {
+  margin-bottom: 20px;
+
+  label {
+    display: block;
+    font-size: 15px;
+    color: #374151;
+    font-weight: 500;
+    margin-bottom: 8px;
+    transition: color 0.2s ease;
+  }
+
+  input,
+  textarea,
+  select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: #ffffff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    &:hover {
+      border-color: #9ca3af;
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 100px;
+  }
+
+  .error {
+    color: #ef4444;
+    font-size: 13px;
+    margin-top: 5px;
+    display: block;
+  }
+}
+
+/* Phần biến thể và tùy chọn */
+.variation-section,
+.option-section {
+  margin-top: 25px;
+  padding: 20px;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.variation-item {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* Button */
+.add-variation-btn,
+.next-btn,
+.prev-btn,
+.submit-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: white;
+  font-weight: 500;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+}
+
+.add-variation-btn {
+  background-color: #10b981;
+
+  &:hover {
+    background-color: #059669;
+  }
+}
+
+.next-btn {
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+
+  &:hover {
+    background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+  }
+}
+
+.prev-btn {
+  background-color: #6b7280;
+
+  &:hover {
+    background-color: #4b5563;
+  }
+}
+
+.submit-btn {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+
+  &:hover {
+    background: linear-gradient(90deg, #059669 0%, #047857 100%);
+  }
+}
+
+.step-buttons {
+  margin-top: 30px;
+  text-align: right;
+
+  @media (max-width: 600px) {
+    text-align: center;
+  }
+}
+
+/* Danh sách ảnh và tùy chọn */
+ul {
+  list-style: none;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #e5e7eb;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    button {
+      padding: 4px 8px;
+      background-color: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+
+      &:hover {
+        background-color: #dc2626;
+      }
+    }
+  }
+}

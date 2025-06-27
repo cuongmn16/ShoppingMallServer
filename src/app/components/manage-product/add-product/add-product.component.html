@@ -1,0 +1,122 @@
+<!-- Khu vực chính (main content) -->
+<div class="main-content">
+  <h1>cuong do la</h1>
+  <div class="form-container">
+    <div class="form-step" [ngClass]="{'active': currentStep === 1}">
+      <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="categories">Danh mục</label>
+          <select
+            name="categories"
+            id="categories"
+            class="form-group-select"
+            formControlName="categories"
+            (click)="loadCategories()"
+          (focus)="loadCategories()"
+          >
+          <option value="">Chọn danh mục</option>
+          <option class="category-item" *ngFor="let category of categories" [value]="category.categoryId">
+            {{ category.categoryName || 'Không có tên' }}
+          </option>
+          </select>
+          <div *ngIf="productForm.get('categories')?.touched && productForm.get('categories')?.invalid" class="error">
+            Vui lòng chọn danh mục!
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="productName">Tên sản phẩm</label>
+          <input type="text" id="productName" formControlName="productName" required>
+        </div>
+        <div class="form-group">
+          <label for="description">Mô tả</label>
+          <textarea id="description" formControlName="description"></textarea>
+        </div>
+        <!-- Thêm tương tự cho các trường khác nếu cần validation -->
+        <div class="form-group">
+          <label for="originalPrice">Giá gốc (VNĐ)</label>
+          <input type="number" id="originalPrice" formControlName="originalPrice" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <label for="discount">Giảm giá (%)</label>
+          <input type="number" id="discount" formControlName="discount" step="0.01" min="0" max="100">
+        </div>
+        <div class="form-group">
+          <label for="stockQuantity">Số lượng tồn kho</label>
+          <input type="number" id="stockQuantity" formControlName="stockQuantity" required min="0">
+        </div>
+        <div class="form-group">
+          <label for="productImage">URL ảnh chính</label>
+          <input type="text" id="productImage" formControlName="productImage">
+        </div>
+        <div class="form-group">
+          <label>Ảnh sản phẩm</label>
+          <button type="button" (click)="addImage()">Thêm ảnh</button>
+        </div>
+        <div class="step-buttons">
+          <button type="button" class="next-btn" (click)="nextStep()" [disabled]="!productForm.valid">Tiếp theo</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="form-step" [ngClass]="{'active': currentStep === 2}">
+      <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label>Biến thể</label>
+          <button type="button" (click)="addVariation()">Thêm biến thể</button>
+          <div *ngFor="let variation of variations.controls; let i=index" [formGroupName]="i">
+            <!-- Kiểm tra lỗi cho từng trường -->
+            <div class="form-group" *ngIf="variations.at(i).get('sku')?.touched && variations.at(i).get('sku')?.invalid">
+              <span class="error" *ngIf="variations.at(i).get('sku')?.errors?.['required']">SKU là bắt buộc.</span>
+            </div>
+            <div class="form-group">
+              <label for="sku{{i}}">SKU</label>
+              <input type="text" id="sku{{i}}" formControlName="sku" required>
+            </div>
+
+            <div class="form-group" *ngIf="variations.at(i).get('price')?.touched && variations.at(i).get('price')?.invalid">
+              <span class="error" *ngIf="variations.at(i).get('price')?.errors?.['required']">Giá là bắt buộc.</span>
+              <span class="error" *ngIf="variations.at(i).get('price')?.errors?.['min']">Giá phải lớn hơn hoặc bằng 0.</span>
+            </div>
+            <div class="form-group">
+              <label for="price{{i}}">Giá (VNĐ)</label>
+              <input type="number" id="price{{i}}" formControlName="price" step="0.01" required min="0">
+            </div>
+
+            <div class="form-group" *ngIf="variations.at(i).get('quantity')?.touched && variations.at(i).get('quantity')?.invalid">
+              <span class="error" *ngIf="variations.at(i).get('quantity')?.errors?.['required']">Số lượng là bắt buộc.</span>
+              <span class="error" *ngIf="variations.at(i).get('quantity')?.errors?.['min']">Số lượng phải lớn hơn hoặc bằng 0.</span>
+            </div>
+            <div class="form-group">
+              <label for="quantity{{i}}">Số lượng</label>
+              <input type="number" id="quantity{{i}}" formControlName="quantity" required min="0">
+            </div>
+
+            <div class="form-group">
+              <label>Tùy chọn</label>
+              <button type="button" (click)="addOption(i)">Thêm tùy chọn</button>
+              <ul>
+                <li *ngFor="let option of productVariations[i].optionInputs; let j=index">
+                  {{option}} <button type="button" (click)="removeOption(i, j)">Xóa</button>
+                </li>
+              </ul>
+            </div>
+            <button type="button" (click)="removeVariation(i)">Xóa biến thể</button>
+          </div>
+        </div>
+        <div class="step-buttons">
+          <button type="button" class="prev-btn" (click)="prevStep()">Quay lại</button>
+          <button type="button" class="next-btn" (click)="nextStep()" >Tiếp theo</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="form-step" [ngClass]="{'active': currentStep === 3}">
+      <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+        <div class="step-buttons">
+          <button type="button" class="prev-btn" (click)="prevStep()">Quay lại</button>
+          <button type="submit" class="submit-btn">Thêm sản phẩm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

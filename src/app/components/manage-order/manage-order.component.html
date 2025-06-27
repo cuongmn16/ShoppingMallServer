@@ -1,0 +1,229 @@
+<!-- order-management.component.html -->
+<div class="content">
+  <div class="container">
+    <!-- Header -->
+    <div class="page-header">
+      <h1>Quản lý đơn hàng</h1>
+      <div class="header-stats">
+        <div class="stat-card">
+          <div class="stat-number">{{totalOrders}}</div>
+          <div class="stat-label">Tổng đơn hàng</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{pendingOrders}}</div>
+          <div class="stat-label">Chờ xử lý</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">{{completedOrders}}</div>
+          <div class="stat-label">Hoàn thành</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter và Search -->
+    <div class="filter-section">
+      <div class="search-box">
+        <input type="text"
+               placeholder="Tìm kiếm đơn hàng theo mã đơn, tên khách hàng..."
+               [(ngModel)]="searchTerm"
+               (input)="onSearchChange()">
+        <button class="search-btn">
+          <i class="icon-search">🔍</i>
+        </button>
+      </div>
+
+      <div class="filter-tabs">
+        <button class="tab-btn"
+                [class.active]="selectedStatus === 'all'"
+                (click)="filterByStatus('all')">
+          Tất cả ({{totalOrders}})
+        </button>
+        <button class="tab-btn"
+                [class.active]="selectedStatus === 'pending'"
+                (click)="filterByStatus('pending')">
+          Chờ xác nhận ({{getOrdersByStatus('pending').length}})
+        </button>
+        <button class="tab-btn"
+                [class.active]="selectedStatus === 'confirmed'"
+                (click)="filterByStatus('confirmed')">
+          Đã xác nhận ({{getOrdersByStatus('confirmed').length}})
+        </button>
+        <button class="tab-btn"
+                [class.active]="selectedStatus === 'shipping'"
+                (click)="filterByStatus('shipping')">
+          Đang giao ({{getOrdersByStatus('shipping').length}})
+        </button>
+        <button class="tab-btn"
+                [class.active]="selectedStatus === 'delivered'"
+                (click)="filterByStatus('delivered')">
+          Đã giao ({{getOrdersByStatus('delivered').length}})
+        </button>
+        <button class="tab-btn"
+                [class.active]="selectedStatus === 'cancelled'"
+                (click)="filterByStatus('cancelled')">
+          Đã hủy ({{getOrdersByStatus('cancelled').length}})
+        </button>
+      </div>
+    </div>
+
+    <!-- Danh sách đơn hàng -->
+    <div class="orders-list">
+      <div class="order-card" *ngFor="let order of filteredOrders">
+        <!-- Order Header -->
+        <div class="order-header">
+          <div class="order-info">
+            <span class="order-id">Đơn hàng: #{{order.id}}</span>
+            <span class="order-date">{{order.createdDate | date:'dd/MM/yyyy HH:mm'}}</span>
+          </div>
+          <div class="order-status">
+            <span class="status-badge" [ngClass]="getStatusClass(order.status)">
+              {{getStatusText(order.status)}}
+            </span>
+          </div>
+        </div>
+
+        <!-- Customer Info -->
+        <div class="customer-info">
+          <div class="customer-details">
+            <strong>{{order.customerName}}</strong>
+            <span class="phone">{{order.customerPhone}}</span>
+          </div>
+          <div class="shipping-address">
+            <i class="icon-location">📍</i>
+            {{order.shippingAddress}}
+          </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="order-items">
+          <div class="item" *ngFor="let item of order.items">
+            <div class="item-image">
+              <img [src]="item.image" [alt]="item.name" onerror="this.src='assets/images/no-image.png'">
+            </div>
+            <div class="item-details">
+              <div class="item-name">{{item.name}}</div>
+              <div class="item-variant" *ngIf="item.variant">{{item.variant}}</div>
+              <div class="item-price">{{item.price | currency:'VND':'symbol':'1.0-0'}}</div>
+            </div>
+            <div class="item-quantity">
+              x{{item.quantity}}
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="order-summary">
+          <div class="summary-row">
+            <span>Tạm tính:</span>
+            <span>{{order.subtotal | currency:'VND':'symbol':'1.0-0'}}</span>
+          </div>
+          <div class="summary-row">
+            <span>Phí vận chuyển:</span>
+            <span>{{order.shippingFee | currency:'VND':'symbol':'1.0-0'}}</span>
+          </div>
+          <div class="summary-row" *ngIf="order.discount > 0">
+            <span>Giảm giá:</span>
+            <span class="discount">-{{order.discount | currency:'VND':'symbol':'1.0-0'}}</span>
+          </div>
+          <div class="summary-row total">
+            <span>Tổng cộng:</span>
+            <span class="total-amount">{{order.total | currency:'VND':'symbol':'1.0-0'}}</span>
+          </div>
+        </div>
+
+        <!-- Order Actions -->
+        <div class="order-actions">
+          <div class="action-left">
+            <button class="btn-secondary" (click)="viewOrderDetail(order.id)">
+              Chi tiết
+            </button>
+            <button class="btn-secondary" (click)="printOrder(order.id)">
+              In đơn hàng
+            </button>
+          </div>
+          <div class="action-right">
+            <ng-container [ngSwitch]="order.status">
+              <div *ngSwitchCase="'pending'">
+                <button class="btn-danger" (click)="cancelOrder(order.id)">Hủy đơn</button>
+                <button class="btn-primary" (click)="confirmOrder(order.id)">Xác nhận</button>
+              </div>
+              <div *ngSwitchCase="'confirmed'">
+                <button class="btn-primary" (click)="startShipping(order.id)">Giao hàng</button>
+              </div>
+              <div *ngSwitchCase="'shipping'">
+                <button class="btn-success" (click)="completeOrder(order.id)">Hoàn thành</button>
+              </div>
+              <div *ngSwitchCase="'delivered'">
+                <button class="btn-secondary" (click)="createReturn(order.id)">Tạo đơn trả</button>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div class="empty-state" *ngIf="filteredOrders.length === 0">
+        <div class="empty-icon">📦</div>
+        <h3>Không có đơn hàng nào</h3>
+        <p>Chưa có đơn hàng nào phù hợp với bộ lọc của bạn</p>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="filteredOrders.length > 0">
+      <button class="page-btn"
+              [disabled]="currentPage === 1"
+              (click)="changePage(currentPage - 1)">
+        Trước
+      </button>
+
+      <span class="page-info">
+        Trang {{currentPage}} / {{totalPages}}
+      </span>
+
+      <button class="page-btn"
+              [disabled]="currentPage === totalPages"
+              (click)="changePage(currentPage + 1)">
+        Sau
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Order Detail Modal -->
+<div class="modal" [class.show]="showOrderDetail" *ngIf="selectedOrder">
+  <div class="modal-content large">
+    <div class="modal-header">
+      <h4 class="modal-title">Chi tiết đơn hàng #{{selectedOrder.id}}</h4>
+      <button type="button" class="close" (click)="closeOrderDetail()">
+        <span>×</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <!-- Order timeline -->
+      <div class="order-timeline">
+        <div class="timeline-item"
+             *ngFor="let event of selectedOrder.timeline"
+             [class.active]="event.completed">
+          <div class="timeline-dot"></div>
+          <div class="timeline-content">
+            <div class="timeline-title">{{event.title}}</div>
+            <div class="timeline-time" *ngIf="event.time">{{event.time | date:'dd/MM/yyyy HH:mm'}}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed order info -->
+      <div class="order-details">
+        <h5>Thông tin khách hàng</h5>
+        <p><strong>Tên:</strong> {{selectedOrder.customerName}}</p>
+        <p><strong>SĐT:</strong> {{selectedOrder.customerPhone}}</p>
+        <p><strong>Email:</strong> {{selectedOrder.customerEmail}}</p>
+        <p><strong>Địa chỉ:</strong> {{selectedOrder.shippingAddress}}</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" (click)="closeOrderDetail()">Đóng</button>
+    </div>
+  </div>
+</div>

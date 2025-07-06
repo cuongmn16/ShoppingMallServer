@@ -72,8 +72,8 @@
         <!-- Order Header -->
         <div class="order-header">
           <div class="order-info">
-            <span class="order-id">Đơn hàng: #{{order.id}}</span>
-            <span class="order-date">{{order.createdDate | date:'dd/MM/yyyy HH:mm'}}</span>
+            <span class="order-id">Đơn hàng: #{{order.orderId}}</span>
+            <span class="order-date"> Ngày đặt: {{ order?.createAt | date: 'dd/MM/yyyy' }}</span>
           </div>
           <div class="order-status">
             <span class="status-badge" [ngClass]="getStatusClass(order.status)">
@@ -85,25 +85,31 @@
         <!-- Customer Info -->
         <div class="customer-info">
           <div class="customer-details">
-            <strong>{{order.customerName}}</strong>
-            <span class="phone">{{order.customerPhone}}</span>
+            <strong>{{order.shippingAddress.recipientName}}</strong>
+            <span class="phone">{{order.shippingAddress.phone}}</span>
           </div>
           <div class="shipping-address">
             <i class="icon-location">📍</i>
-            {{order.shippingAddress}}
+            <span> {{order.shippingAddress.detail_address}}</span>
+            <span> {{order.shippingAddress.ward}}</span>
+            <span> {{order.shippingAddress.district}}</span>
+            <span> {{order.shippingAddress.province}}</span>
           </div>
         </div>
 
         <!-- Order Items -->
         <div class="order-items">
-          <div class="item" *ngFor="let item of order.items">
+          <div class="item" *ngFor="let item of order.orderItems">
             <div class="item-image">
-              <img [src]="item.image" [alt]="item.name" onerror="this.src='assets/images/no-image.png'">
+              <img [src]="item.product.productImage"  onerror="this.src='assets/images/no-image.png'">
             </div>
             <div class="item-details">
-              <div class="item-name">{{item.name}}</div>
-              <div class="item-variant" *ngIf="item.variant">{{item.variant}}</div>
-              <div class="item-price">{{item.price | currency:'VND':'symbol':'1.0-0'}}</div>
+              <div class="item-name">{{item.product.productName}}</div>
+              <div class="item-variant" *ngFor="let variant of item.variationOptions">
+                <span class="variant-label"> {{variant.type}} :</span>
+                <span class="variant-value">{{variant.value}}</span>
+              </div>
+              <div class="item-price">{{item.product.price | currency:'VND':'symbol':'1.0-0'}}</div>
             </div>
             <div class="item-quantity">
               x{{item.quantity}}
@@ -115,46 +121,46 @@
         <div class="order-summary">
           <div class="summary-row">
             <span>Tạm tính:</span>
-            <span>{{order.subtotal | currency:'VND':'symbol':'1.0-0'}}</span>
+            <span>{{order.totalAmount | currency:'VND':'symbol':'1.0-0'}}</span>
           </div>
           <div class="summary-row">
             <span>Phí vận chuyển:</span>
             <span>{{order.shippingFee | currency:'VND':'symbol':'1.0-0'}}</span>
           </div>
-          <div class="summary-row" *ngIf="order.discount > 0">
+          <div class="summary-row" *ngIf="order.discountAmount > 0">
             <span>Giảm giá:</span>
-            <span class="discount">-{{order.discount | currency:'VND':'symbol':'1.0-0'}}</span>
+            <span class="discount">-{{order.discountAmount | currency:'VND':'symbol':'1.0-0'}}</span>
           </div>
           <div class="summary-row total">
             <span>Tổng cộng:</span>
-            <span class="total-amount">{{order.total | currency:'VND':'symbol':'1.0-0'}}</span>
+            <span class="total-amount">{{order.totalAmount | currency:'VND':'symbol':'1.0-0'}}</span>
           </div>
         </div>
 
         <!-- Order Actions -->
         <div class="order-actions">
           <div class="action-left">
-            <button class="btn-secondary" (click)="viewOrderDetail(order.id)">
+            <button class="btn-secondary" (click)="viewOrderDetailById(order.orderId)">
               Chi tiết
             </button>
-            <button class="btn-secondary" (click)="printOrder(order.id)">
+            <button class="btn-secondary" >
               In đơn hàng
             </button>
           </div>
           <div class="action-right">
             <ng-container [ngSwitch]="order.status">
               <div *ngSwitchCase="'pending'">
-                <button class="btn-danger" (click)="cancelOrder(order.id)">Hủy đơn</button>
-                <button class="btn-primary" (click)="confirmOrder(order.id)">Xác nhận</button>
+                <button class="btn-danger" >Hủy đơn</button>
+                <button class="btn-primary" >Xác nhận</button>
               </div>
               <div *ngSwitchCase="'confirmed'">
-                <button class="btn-primary" (click)="startShipping(order.id)">Giao hàng</button>
+                <button class="btn-primary" >Giao hàng</button>
               </div>
               <div *ngSwitchCase="'shipping'">
-                <button class="btn-success" (click)="completeOrder(order.id)">Hoàn thành</button>
+                <button class="btn-success" >Hoàn thành</button>
               </div>
               <div *ngSwitchCase="'delivered'">
-                <button class="btn-secondary" (click)="createReturn(order.id)">Tạo đơn trả</button>
+                <button class="btn-secondary">Tạo đơn trả</button>
               </div>
             </ng-container>
           </div>
@@ -194,7 +200,7 @@
 <div class="modal" [class.show]="showOrderDetail" *ngIf="selectedOrder">
   <div class="modal-content large">
     <div class="modal-header">
-      <h4 class="modal-title">Chi tiết đơn hàng #{{selectedOrder.id}}</h4>
+      <h4 class="modal-title">Chi tiết đơn hàng #{{selectedOrder.orderId}}</h4>
       <button type="button" class="close" (click)="closeOrderDetail()">
         <span>×</span>
       </button>
@@ -203,12 +209,12 @@
       <!-- Order timeline -->
       <div class="order-timeline">
         <div class="timeline-item"
-             *ngFor="let event of selectedOrder.timeline"
-             [class.active]="event.completed">
+
+            >
           <div class="timeline-dot"></div>
           <div class="timeline-content">
-            <div class="timeline-title">{{event.title}}</div>
-            <div class="timeline-time" *ngIf="event.time">{{event.time | date:'dd/MM/yyyy HH:mm'}}</div>
+            <div class="timeline-title"></div>
+            <div class="timeline-time" ></div>
           </div>
         </div>
       </div>
@@ -216,9 +222,9 @@
       <!-- Detailed order info -->
       <div class="order-details">
         <h5>Thông tin khách hàng</h5>
-        <p><strong>Tên:</strong> {{selectedOrder.customerName}}</p>
-        <p><strong>SĐT:</strong> {{selectedOrder.customerPhone}}</p>
-        <p><strong>Email:</strong> {{selectedOrder.customerEmail}}</p>
+        <p><strong>Tên:</strong> </p>
+        <p><strong>SĐT:</strong> </p>
+        <p><strong>Email:</strong> </p>
         <p><strong>Địa chỉ:</strong> {{selectedOrder.shippingAddress}}</p>
       </div>
     </div>

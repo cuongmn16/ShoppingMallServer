@@ -1,7 +1,8 @@
 import {ProductImage} from './product-image';
 import {ProductVariation} from './product-variation';
 
-export interface Product {
+export interface Products {
+  productId: number;
   sellerId: number;
   categoryId: number;
   productName: string;

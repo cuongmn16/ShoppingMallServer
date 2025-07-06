@@ -1,0 +1,153 @@
+<div class="content">
+  <div class="container">
+    <div class="header animate-fade-in">
+      <h1><i class="fas fa-chart-line"></i> Báo cáo Thống kê </h1>
+      <p>Dashboard phân tích doanh số và hiệu suất bán hàng</p>
+    </div>
+
+    <div class="filters animate-fade-in">
+      <div class="filter-group">
+        <label>Thời gian:</label>
+        <select [(ngModel)]="selectedPeriod" (change)="updateData()">
+          <option value="7days">7 ngày qua</option>
+          <option value="30days">30 ngày qua</option>
+          <option value="3months">3 tháng qua</option>
+          <option value="year">Năm nay</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Danh mục:</label>
+        <select [(ngModel)]="selectedCategory" (change)="updateData()">
+          <option value="all">Tất cả</option>
+          <option value="electronics">Điện tử</option>
+          <option value="fashion">Thời trang</option>
+          <option value="beauty">Làm đẹp</option>
+          <option value="home">Nhà cửa</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Từ ngày:</label>
+        <input type="date" [(ngModel)]="startDate" (change)="updateData()">
+      </div>
+      <div class="filter-group">
+        <label>Đến ngày:</label>
+        <input type="date" [(ngModel)]="endDate" (change)="updateData()">
+      </div>
+    </div>
+
+    <div class="loading" *ngIf="loading">
+      <i class="fas fa-spinner"></i>
+      <div>Đang tải dữ liệu...</div>
+    </div>
+
+    <div *ngIf="!loading">
+      <div class="stats-grid animate-fade-in">
+        <div class="stat-card">
+          <div class="stat-icon revenue">
+            <i class="fas fa-dollar-sign"></i>
+          </div>
+          <div class="stat-value">{{ stats.revenue | currency:'VND':'symbol':'1.0-0' }}</div>
+          <div class="stat-label">Doanh thu</div>
+          <div class="stat-change positive">
+            <i class="fas fa-arrow-up"></i>
+            +{{ stats.revenueGrowth }}%
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width]="stats.revenueProgress + '%'"></div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon orders">
+            <i class="fas fa-shopping-cart"></i>
+          </div>
+          <div class="stat-value">{{ stats.orders | number }}</div>
+          <div class="stat-label">Đơn hàng</div>
+          <div class="stat-change positive">
+            <i class="fas fa-arrow-up"></i>
+            +{{ stats.ordersGrowth }}%
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width]="stats.ordersProgress + '%'"></div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon users">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="stat-value">{{ stats.users | number }}</div>
+          <div class="stat-label">Khách hàng</div>
+          <div class="stat-change positive">
+            <i class="fas fa-arrow-up"></i>
+            +{{ stats.usersGrowth }}%
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width]="stats.usersProgress + '%'"></div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon products">
+            <i class="fas fa-box"></i>
+          </div>
+          <div class="stat-value">{{ stats.products | number }}</div>
+          <div class="stat-label">Sản phẩm</div>
+          <div class="stat-change positive">
+            <i class="fas fa-arrow-up"></i>
+            +{{ stats.productsGrowth }}%
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width]="stats.productsProgress + '%'"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-section animate-fade-in">
+        <div class="chart-container">
+          <h3 class="chart-title">Biểu đồ Doanh thu theo Thời gian</h3>
+          <canvas #revenueChart width="400" height="200"></canvas>
+        </div>
+
+        <div class="chart-container">
+          <h3 class="chart-title">Top Danh mục Bán chạy</h3>
+          <canvas #categoryChart width="400" height="200"></canvas>
+        </div>
+      </div>
+
+      <div class="table-section animate-fade-in">
+        <h3 class="chart-title">Sản phẩm Bán chạy Nhất</h3>
+        <table class="data-table">
+          <thead>
+          <tr>
+            <th>Hình ảnh</th>
+            <th>Tên sản phẩm</th>
+            <th>Danh mục</th>
+            <th>Đã bán</th>
+            <th>Doanh thu</th>
+            <th>Đánh giá</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let product of topProducts">
+            <td>
+              <img [src]="product.image" [alt]="product.name" class="product-img">
+            </td>
+            <td>{{ product.name }}</td>
+            <td>{{ product.category }}</td>
+            <td>{{ product.sold | number }}</td>
+            <td>{{ product.revenue | currency:'VND':'symbol':'1.0-0' }}</td>
+            <td>
+              <span *ngFor="let star of getStars(product.rating)">
+                <i class="fas fa-star" style="color: #ffc107;"></i>
+              </span>
+              ({{ product.rating }})
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>

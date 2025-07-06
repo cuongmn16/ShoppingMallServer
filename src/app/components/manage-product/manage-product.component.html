@@ -1,0 +1,315 @@
+<div class="content">
+  <div class="container">
+    <h1 class="page-title">Quản lý Sản phẩm</h1>
+
+    <div class="stats-section">
+      <div class="stat-card">
+        <div class="stat-number">{{ totalProducts }}</div>
+        <div class="stat-label">Tổng sản phẩm</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{ totalValue | currency:'VND':'symbol':'1.0-0' }}</div>
+        <div class="stat-label">Tổng giá trị</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{ lowStockCount }}</div>
+        <div class="stat-label">Sắp hết hàng</div>
+      </div>
+    </div>
+
+    <div class="filters-section">
+      <div class="filters-row">
+        <div class="search-box">
+          <input
+            type="text"
+            class="search-input"
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()"
+            placeholder="Tìm kiếm sản phẩm...">
+          <i class="fas fa-search search-icon"></i>
+        </div>
+        <select
+          class="filter-select"
+          [(ngModel)]="selectedCategory"
+          (change)="onFilterChange()">
+          <option value="">Tất cả danh mục</option>
+          <option *ngFor="let category of categories" [value]="category">
+            {{ category }}
+          </option>
+        </select>
+        <select
+          class="filter-select"
+          [(ngModel)]="selectedStock"
+          (change)="onFilterChange()">
+          <option value="">Tất cả tồn kho</option>
+          <option value="high">Còn nhiều (>50)</option>
+          <option value="medium">Còn ít (10-50)</option>
+          <option value="low">Sắp hết (<10)</option>
+        </select>
+        <button class="btn btn-primary" (click)="openModal()">
+          <i class="fas fa-plus"></i>
+          Thêm sản phẩm
+        </button>
+      </div>
+    </div>
+
+    <div class="products-grid">
+      <div
+        class="product-card"
+        *ngFor="let product of filteredProducts; trackBy: trackByProductId"
+        [@slideIn]>
+        <div class="product-image">
+          <img
+            *ngIf="productImages[product.productId]?.length; else noImage"
+            [src]="productImages[product.productId][0]?.imageUrl"
+            [alt]="product.productName"
+            class="product-img">
+          <ng-template #noImage>
+            <i class="fas fa-image"></i>
+          </ng-template>
+        </div>
+        <div class="product-info">
+          <h3 class="product-name">{{ product.productName }}</h3>
+          <div class="product-price">{{ product.price | currency:'VND':'symbol':'1.0-0' }}</div>
+          <div class="product-category">{{ product.categoryId }}</div>
+          <div class="product-stock" [ngClass]="getStockClass(product.stockQuantity)">
+            <i class="fas fa-box"></i>
+            Tồn kho: {{ product.stockQuantity }}
+          </div>
+          <div class="product-details">
+            <span>Giá gốc: {{ product.originalPrice | currency:'VND':'symbol':'1.0-0' }}</span>
+            <span>Giảm giá: {{ product.discount }}%</span>
+            <span>Đã bán: {{ product.soldQuantity }}</span>
+            <span>Đánh giá: {{ product.rating }}/5</span>
+            <span>Trạng thái: {{ product.productStatus }}</span>
+          </div>
+          <div class="product-actions">
+            <button
+              class="btn btn-secondary btn-sm"
+              (click)="editProduct(product)">
+              <i class="fas fa-edit"></i>
+              Sửa
+            </button>
+            <button
+              class="btn btn-danger btn-sm"
+              (click)="deleteProduct(product.productId)">
+              <i class="fas fa-trash"></i>
+              Xóa
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="filteredProducts.length === 0" class="no-products">
+      <i class="fas fa-box-open fa-3x"></i>
+      <p>Không tìm thấy sản phẩm nào</p>
+    </div>
+  </div>
+
+  <!-- Modal for Add/Edit Product -->
+  <div class="modal" [class.active]="isModalOpen" (click)="onModalBackdropClick($event)">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title">{{ isEditMode ? 'Sửa sản phẩm' : 'Thêm sản phẩm mới' }}</h2>
+        <button class="close-btn" (click)="closeModal()">×</button>
+      </div>
+      <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label class="form-label">Tên sản phẩm</label>
+          <input
+            type="text"
+            class="form-input"
+            formControlName="productName"
+            [class.error]="productForm.get('productName')?.invalid && productForm.get('productName')?.touched">
+          <div
+            class="error-message"
+            *ngIf="productForm.get('productName')?.invalid && productForm.get('productName')?.touched">
+            Tên sản phẩm là bắt buộc
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Giá (VNĐ)</label>
+          <input
+            type="number"
+            class="form-input"
+            formControlName="price"
+            [class.error]="productForm.get('price')?.invalid && productForm.get('price')?.touched">
+          <div
+            class="error-message"
+            *ngIf="productForm.get('price')?.invalid && productForm.get('price')?.touched">
+            Giá sản phẩm phải lớn hơn 0
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Giá gốc (VNĐ)</label>
+          <input
+            type="number"
+            class="form-input"
+            formControlName="originalPrice"
+            [class.error]="productForm.get('originalPrice')?.invalid && productForm.get('originalPrice')?.touched">
+          <div
+            class="error-message"
+            *ngIf="productForm.get('originalPrice')?.invalid && productForm.get('originalPrice')?.touched">
+            Giá gốc phải lớn hơn hoặc bằng 0
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Giảm giá (%)</label>
+          <input
+            type="number"
+            class="form-input"
+            formControlName="discount"
+            [class.error]="productForm.get('discount')?.invalid && productForm.get('discount')?.touched">
+          <div
+            class="error-message"
+            *ngIf="productForm.get('discount')?.invalid && productForm.get('discount')?.touched">
+            Giảm giá phải từ 0 đến 100
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Danh mục</label>
+          <select
+            class="form-input"
+            formControlName="categoryId"
+            [class.error]="productForm.get('categoryId')?.invalid && productForm.get('categoryId')?.touched">
+            <option value="">Chọn danh mục</option>
+            <option *ngFor="let category of categories" [value]="category.id">
+              {{ category.name }}
+            </option>
+          </select>
+          <div
+            class="error-message"
+            *ngIf="productForm.get('categoryId')?.invalid && productForm.get('categoryId')?.touched">
+            Vui lòng chọn danh mục
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Số lượng tồn kho</label>
+          <input
+            type="number"
+            class="form-input"
+            formControlName="stockQuantity"
+            [class.error]="productForm.get('stockQuantity')?.invalid && productForm.get('stockQuantity')?.touched">
+          <div
+            class="error-message"
+            *ngIf="productForm.get('stockQuantity')?.invalid && productForm.get('stockQuantity')?.touched">
+            Số lượng tồn kho phải >= 0
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Số lượng đã bán</label>
+          <input
+            type="number"
+            class="form-input"
+            formControlName="soldQuantity"
+            [class.error]="productForm.get('soldQuantity')?.invalid && productForm.get('soldQuantity')?.touched">
+          <div
+            class="error-message"
+            *ngIf="productForm.get('soldQuantity')?.invalid && productForm.get('soldQuantity')?.touched">
+            Số lượng đã bán phải >= 0
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Đánh giá</label>
+          <input
+            type="number"
+            class="form-input"
+            formControlName="rating"
+            [class.error]="productForm.get('rating')?.invalid && productForm.get('rating')?.touched">
+          <div
+            class="error-message"
+            *ngIf="productForm.get('rating')?.invalid && productForm.get('rating')?.touched">
+            Đánh giá phải từ 0 đến 5
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Trạng thái</label>
+          <select
+            class="form-input"
+            formControlName="status"
+            [class.error]="productForm.get('status')?.invalid && productForm.get('status')?.touched">
+            <option value="">Chọn trạng thái</option>
+            <option value="ACTIVE">Hoạt động</option>
+            <option value="INACTIVE">Không hoạt động</option>
+            <option value="OUT_OF_STOCK">Hết hàng</option>
+          </select>
+          <div
+            class="error-message"
+            *ngIf="productForm.get('status')?.invalid && productForm.get('status')?.touched">
+            Vui lòng chọn trạng thái
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Mô tả</label>
+          <textarea
+            class="form-input form-textarea"
+            formControlName="description"
+            placeholder="Mô tả chi tiết về sản phẩm..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">URL Hình ảnh chính</label>
+          <input
+            type="url"
+            class="form-input"
+            formControlName="image"
+            placeholder="https://example.com/image.jpg">
+          <button type="button" class="btn btn-secondary btn-sm" (click)="addImage()" *ngIf="isEditMode">
+            <i class="fas fa-plus"></i> Thêm ảnh khác
+          </button>
+        </div>
+
+        <div class="form-group"
+             *ngIf="currentEditId !== null && productImages[currentEditId]?.length">
+          <label class="form-label">Danh sách ảnh</label>
+          <ul>
+            <li *ngFor="let image of productImages[currentEditId]; let i = index">
+              {{ image.imageUrl }} (Primary: {{ image.isPrimary ? 'Yes' : 'No' }}, Order: {{ image.displayOrder }})
+              <button type="button" class="btn btn-danger btn-sm" (click)="removeImage(currentEditId!, i)">
+                <i class="fas fa-trash"></i>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="closeModal()">
+            Hủy
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="productForm.invalid || isSubmitting">
+            <i class="fas fa-spinner fa-spin" *ngIf="isSubmitting"></i>
+            {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div class="modal" [class.active]="isConfirmModalOpen">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">Xác nhận xóa</h2>
+      </div>
+      <p>Bạn có chắc chắn muốn xóa sản phẩm này không?</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="cancelDelete()">Hủy</button>
+        <button class="btn btn-danger" (click)="confirmDelete()">Xóa</button>
+      </div>
+    </div>
+  </div>
+</div>
